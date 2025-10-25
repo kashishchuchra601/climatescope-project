@@ -1,33 +1,75 @@
-import pandas as pd
-df = pd.read_csv("data/GlobalWeatherRepository.csv")
-# print("Dataset loaded successfully!")
-# print("Number of rows:", len(df))
-# print("Columns:", df.columns.tolist())
+# import pandas as pd
 
+# # Load dataset (from data folder)
+# df = pd.read_csv("data/GlobalWeatherRepository.csv")
+
+# # Show first 5 rows
+# print("\nFirst 5 rows:")
+# print(df.head())
+
+# # Show dataset info
+# print("\nInfo:")
 # print(df.info())
+
+# # Show summary statistics
+# print("\nSummary:")
 # print(df.describe())
 
-# print("Missing values before cleaning:")
+# # Show column data types
+# print("\nColumn Data Types:")
+# print(df.dtypes)
+
+
+# import pandas as pd
+
+# df = pd.read_csv("data/GlobalWeatherRepository.csv")
+
+# # Check missing values
+# print("\nMissing values per column:")
 # print(df.isnull().sum())
-# df = df.dropna(subset=["temperature_celsius", "humidity"])
-# print(" Missing values handled successfully.")
+
+# # Percentage of missing values
+# print("\nPercentage of missing values per column:")
+# print((df.isnull().sum() / len(df)) * 100)
+
+# # Check data ranges 
+# print("\nData Ranges:")
+# for col in df.select_dtypes(include=['float64', 'int64']).columns:
+#     print(f"{col}: min={df[col].min()}, max={df[col].max()}")
 
 
-# Remove impossible values
-# df = df[(df["temperature_celsius"] > -50) & (df["temperature_celsius"] < 60)]
-# df = df[(df["humidity"] >= 0) & (df["humidity"] <= 100)]
-# print(" Anomalies handled successfully.")
+
+# import pandas as pd
+# df = pd.read_csv("data/GlobalWeatherRepository.csv")
+# df_cleaned = df.dropna()
+# df_filled = df.fillna(df.mean(numeric_only=True))
+# df_filled.to_csv("data/GlobalWeatherRepository_cleaned.csv", index=False)
+# print("\nCleaned dataset saved as 'GlobalWeatherRepository_cleaned.csv'")
 
 
+# import pandas as pd
+# df = pd.read_csv("data/GlobalWeatherRepository.csv")
+# if 'temperature' in df.columns:
+#     df['temperature_C'] = df['temperature'] - 273.15
+#     print("Temperature column converted from Kelvin to Celsius ")
+#     print(df[['temperature', 'temperature_C']].head())  # show first 5 rows
+# else:
+#     print("No 'temperature' column found in dataset ")
+
+
+# import pandas as pd
 # from sklearn.preprocessing import MinMaxScaler
+# df = pd.read_csv("data/GlobalWeatherRepository_cleaned.csv")
+# numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns
 # scaler = MinMaxScaler()
-# df[["temperature_celsius", "humidity"]] = scaler.fit_transform(df[["temperature_celsius", "humidity"]])
-# print(" Values normalized successfully.")
+# df[numeric_cols] = scaler.fit_transform(df[numeric_cols])
+# df.to_csv("data/GlobalWeatherRepository_normalized.csv", index=False)
+# print("Normalized dataset saved as GlobalWeatherRepository_normalized.csv")
 
 
-
-df['last_updated'] = pd.to_datetime(df['last_updated'], errors='coerce')
-df = df.dropna(subset=['last_updated'])
-monthly_avg = df.groupby(df['last_updated'].dt.to_period('M')).mean(numeric_only=True).reset_index()
-monthly_avg.to_csv('data/monthly_average.csv', index=False)
-print(" Aggregated to monthly averages and saved successfully!")
+# import pandas as pd
+# df = pd.read_csv("data/GlobalWeatherRepository_cleaned.csv")
+# # df['last_updated'] = pd.to_datetime(df['last_updated'])
+# # monthly_avg = df.groupby(df['last_updated'].dt.to_period('M')).mean(numeric_only=True)
+# # monthly_avg.to_csv("data/GlobalWeatherRepository_monthly.csv")
+# # print(" Monthly aggregated dataset saved as GlobalWeatherRepository_monthly.csv")
