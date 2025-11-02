@@ -7,19 +7,12 @@ import plotly.express as px
 st.set_page_config(page_title="🌍 Global Weather & Air Quality Dashboard",
                    layout="wide", page_icon="☁")
 
-
-
 st.title("🌦 Global Weather & Air Quality Interactive Dashboard")
-
-
 st.markdown("""
 Explore weather and air quality patterns interactively.  
 *Milestone 3 – Visualization Development & Interactivity*
             
 <style>
-            
-
-
 
 /* MAIN PAGE BACKGROUND */
 .block-container {
@@ -48,9 +41,6 @@ h2, h3, h4 {
     font-weight: 700 !important;
     margin-bottom: 0.6rem !important;
 }
-  
-
-
 
 /* SIDEBAR DESIGN */
 [data-testid="stSidebar"] {
@@ -61,7 +51,7 @@ h2, h3, h4 {
 
 
 [data-testid="stSidebar"] * {
-    color: #B0B0B0 !important;  
+    color: #B0B0B0 !important;  /* changed from blue to black */
     font-weight: 600 !important;
 }
 
@@ -70,7 +60,7 @@ div[data-baseweb="select"], .stDateInput, .stMultiSelect, .stTextInput {
     background-color: #FFFFFF !important;
     border-radius: 8px !important;
     border: 1.5px solid #003366 !important;
-    color: #003366 !important;  
+    color: #ffffff !important;  /* input text black */
 }
 
 
@@ -78,7 +68,7 @@ div[data-baseweb="select"], .stDateInput, .stMultiSelect, .stTextInput {
 [data-testid="stSidebar"] label, 
 [data-testid="stSidebar"] h2, 
 [data-testid="stSidebar"] h3 {
-    color: #F8F9FA !important;  
+    color: #F8F9FA !important;  /* changed from blue to black */
     font-weight: 700 !important;
     font-size: 1rem !important;
 }
@@ -114,24 +104,8 @@ section[data-testid="stSidebar"] > div {
     padding: 10px !important;
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
-
-/* All tab names */
-div[role="tablist"] button[role="tab"] {
-    color: orange !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-}
-
-/* Active tab */
-div[role="tablist"] button[role="tab"][aria-selected="true"] {
-    color: darkorange !important;
-}
-
-
 </style>
 """, unsafe_allow_html=True)
-
-
 
 
 # DATA LOAD
@@ -139,8 +113,6 @@ div[role="tablist"] button[role="tab"][aria-selected="true"] {
 @st.cache_data
 def load_data():
     df = pd.read_csv(r"C:\Users\Kashi\Desktop\climatescope-project\data\GlobalWeatherRepository_cleaned.csv")
-    
-
 
 
     df['last_updated'] = pd.to_datetime(df['last_updated'], errors='coerce')
@@ -149,9 +121,6 @@ def load_data():
 
 
     df = df.dropna(subset=["latitude", "longitude"])
-    
-    
-    df = df[df['last_updated'].dt.year.isin([2024, 2025])]
     return df
 
 df = load_data()
@@ -159,39 +128,25 @@ df = load_data()
 
 # SIDEBAR FILTERS
 
-# SIDEBAR FILTERS
 st.sidebar.header("🔍 Filters")
 
-# --- COUNTRY FILTER ---
-# --- COUNTRY FILTER ---
-if 'country' in df.columns:
-    countries = sorted(df['country'].dropna().unique())
-    select_all_countries = st.sidebar.checkbox("Select All Countries", value=True)
+# Date filter
+min_date, max_date = df['Date'].min(), df['Date'].max()
+date_range = st.sidebar.date_input("Select Date Range", [min_date, max_date])
 
-    if select_all_countries:
-        selected_countries = countries
-    else:
-        selected_countries = st.sidebar.multiselect(
-            "Select Country", countries, default=countries[:3])
+if len(date_range) == 2:
+    df = df[(df['Date'] >= date_range[0]) & (df['Date'] <= date_range[1])]
 
-    df = df[df['country'].isin(selected_countries)]
-# --- YEAR FILTER ---
-available_years = sorted(df['last_updated'].dt.year.dropna().unique())
-selected_years = st.sidebar.multiselect(
-    "Select Year", available_years, default=available_years)
-df = df[df['last_updated'].dt.year.isin(selected_years)]
-
-# --- TEMPERATURE FILTER ---
+# Temperature filter (range)
 temp_min, temp_max = float(df["temperature_celsius"].min()), float(df["temperature_celsius"].max())
-temp_range = st.sidebar.slider("Select Temperature Range (°C)",
-                               temp_min, temp_max, (temp_min, temp_max))
+temp_range = st.sidebar.slider("Select Temperature Range (°C)", temp_min, temp_max, (temp_min, temp_max))
 df = df[(df["temperature_celsius"] >= temp_range[0]) & (df["temperature_celsius"] <= temp_range[1])]
 
-# --- VARIABLE SELECTOR ---
+# Variable selector
 numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
 default_var = "temperature_celsius" if "temperature_celsius" in numeric_cols else numeric_cols[0]
-selected_variable = st.sidebar.selectbox("Select variable to visualize",
-                                         numeric_cols, index=numeric_cols.index(default_var))
+selected_variable = st.sidebar.selectbox("Select variable to visualize", numeric_cols, index=numeric_cols.index(default_var))
+
 # SUMMARY METRICS
 
 st.subheader("📊 Key Weather Statistics")
@@ -214,10 +169,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 ])
 
 
-
-
-
 # TAB 1 — TEMPERATURE & WEATHER TRENDS
+
 with tab1:
     st.subheader("📈 Temperature and Weather Trends")
     fig_temp = px.line(df, x="last_updated", y=selected_variable,
@@ -233,30 +186,7 @@ with tab1:
         fig_comp = px.line(df, x="last_updated", y=compare_vars, template="plotly_white")
         st.plotly_chart(fig_comp, use_container_width=True)
 
-    
-    # 1 Temperature vs Humidity Scatter
-    fig_scatter = px.scatter(df, x="temperature_celsius", y="humidity",
-                             color="wind_kph", size="pressure_mb",
-                             title="Temperature vs Humidity (Colored by Wind Speed)",
-                             template="plotly_white")
-    st.plotly_chart(fig_scatter, use_container_width=True)
 
-    # Daily Average Temperature Trend
-    daily_avg = df.groupby('Date')[['temperature_celsius', 'humidity']].mean().reset_index()
-    fig_daily = px.line(daily_avg, x="Date", y="temperature_celsius",
-                        title="Daily Average Temperature Over Time",
-                        template="plotly_white")
-    st.plotly_chart(fig_daily, use_container_width=True)
-
-    #  Air Quality vs Temperature (if available)
-    aq_cols = [c for c in df.columns if "PM2.5" in c or "PM10" in c]
-    if aq_cols:
-        aq_col = aq_cols[0]
-        fig_pm = px.scatter(df, x="temperature_celsius", y=aq_col,
-                            color="humidity", size="wind_kph",
-                            title=f"{aq_col.replace('_',' ').title()} vs Temperature",
-                            template="plotly_white")
-        st.plotly_chart(fig_pm, use_container_width=True)
 # TAB 2 — AIR QUALITY ANALYSIS
 
 with tab2:
@@ -300,36 +230,13 @@ with tab3:
 
 # TAB 4 — CORRELATION HEATMAP
 
-
 with tab4:
     st.subheader("📊 Correlation Between Weather & Air Quality Variables")
+    corr = df[numeric_cols].corr()
+    fig_corr = px.imshow(corr, text_auto=True, color_continuous_scale="RdBu_r",
+                         title="Correlation Heatmap", aspect="auto")
+    st.plotly_chart(fig_corr, use_container_width=True)
 
-    
-    numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
-
-    if numeric_cols:
-        
-        selected_corr_vars = st.multiselect(
-            "Select variables to include in correlation heatmap",
-            numeric_cols,
-            default=numeric_cols[:8]  
-        )
-
-        if selected_corr_vars:
-            
-            corr = df[selected_corr_vars].corr()
-
-            
-            fig_corr = px.imshow(corr,
-                                 text_auto=True,
-                                 color_continuous_scale="RdBu_r",
-                                 title="Correlation Heatmap",
-                                 aspect="auto")
-            st.plotly_chart(fig_corr, use_container_width=True)
-        else:
-            st.warning("Please select at least one variable.")
-    else:
-        st.warning("No numeric columns available for correlation.")
 
 # TAB 5 — INSIGHTS & CONCLUSION
 
@@ -357,10 +264,3 @@ with tab5:
     """)
 
 st.success("✅ Milestone 3 Dashboard Completed!")
-
-
-
-
-
-
-
